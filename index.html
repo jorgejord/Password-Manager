@@ -65,8 +65,6 @@ header h1{font-family:'Cinzel',serif;font-weight:900;font-size:clamp(1.5rem,3.5v
 .btn-hdr.lock-btn{color:var(--red);border-color:rgba(224,85,85,.3)}
 .btn-hdr.lock-btn:hover{background:var(--redd)}
 .btn-hdr svg{width:11px;height:11px;flex-shrink:0}
-.vault-name-badge{position:absolute;top:1.05rem;left:50%;transform:translateX(-50%);font-size:.66rem;color:var(--dim);letter-spacing:.1em;white-space:nowrap;opacity:0;animation:fup .5s ease .7s forwards}
-.vault-name-badge span{color:var(--muted)}
 
 /* ── Layout ── */
 .wrap{position:relative;z-index:10;display:flex;justify-content:center;align-items:flex-start;gap:1.2rem;padding:0 1.2rem 9rem;max-width:1060px;margin:0 auto}
@@ -209,7 +207,6 @@ header h1{font-family:'Cinzel',serif;font-weight:900;font-size:clamp(1.5rem,3.5v
   header h1{font-size:1.4rem}
   .header-btns{gap:.3rem}
   .btn-hdr span{display:none}
-  .vault-name-badge{display:none}
 }
 </style>
 </head>
@@ -696,7 +693,6 @@ async function createVault(){
 function launchApp(){
   document.getElementById('lockScreen').classList.add('hidden');
   document.getElementById('app').classList.remove('hidden');
-  document.getElementById('vaultFileName').textContent = vaultFileName;
   // backward compat: old vaults without secretCode
   if(!DB.secretCode) DB.secretCode = 'lx9';
   markSaved();
@@ -795,8 +791,8 @@ function makeCard(c,secret,idx){
   const SKIP_LABELS=/^(email|e-mail|username|user|password|pass)$/i;
   (c.extra||[]).filter(f=>{
     const ll=f.l.toLowerCase().trim();
-    if(SKIP_LABELS.test(ll)) return false;          // label ชัดเจนว่าซ้ำ
-    if(c.email    && f.v===c.email)    return false; // ค่าซ้ำกัน
+    if(SKIP_LABELS.test(ll)) return false;
+    if(c.email    && f.v===c.email)    return false;
     if(c.username && f.v===c.username) return false;
     if(c.password && f.v===c.password) return false;
     return true;
@@ -997,7 +993,6 @@ function extractCard(card){
   card.querySelectorAll('button[onclick]').forEach(btn=>{
     const m=(btn.getAttribute('onclick')||'').match(/copyField\s*\(\s*this\s*,\s*['"]([^'"]*)['"]\s*\)/);
     if(!m)return; const val=m[1],txt=btn.textContent.trim().toLowerCase();
-    // แยก if ขาดกัน — ถ้า field set แล้วให้ข้ามเลย ไม่ fallthrough ไป extra
     if(txt.includes('email')||txt.includes('e-mail'))    { if(!email)    email=val; }
     else if(txt.includes('username')||txt.includes('user')) { if(!username) username=val; }
     else if(txt.includes('password'))                        { if(!password) password=val; }
@@ -1062,22 +1057,18 @@ function confirmImport(){
    SECRET CODE MANAGEMENT
 ══════════════════════════════════════════════ */
 function randCode(){
-  // สุ่ม 3 ตัวอักษร + 2 ตัวเลข เช่น kpz84
   const alpha='abcdefghjkmnpqrstuvwxyz';
   const nums='0123456789';
   let s='';
   for(let i=0;i<3;i++) s+=alpha[Math.floor(Math.random()*alpha.length)];
   for(let i=0;i<2;i++) s+=nums[Math.floor(Math.random()*nums.length)];
-  // สลับตำแหน่ง
   return s.split('').sort(()=>Math.random()-.5).join('');
 }
 
-// ปุ่ม ⟳ ใน New Vault panel
 function genCode(){
   document.getElementById('newCode').value=randCode();
 }
 
-// เปิด modal เปลี่ยน code ใน app
 function openChangeCode(){
   document.getElementById('currentCodeDisplay').textContent = DB.secretCode||'(none)';
   document.getElementById('newCodeInput').value='';
